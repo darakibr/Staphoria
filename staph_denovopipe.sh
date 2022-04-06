@@ -16,6 +16,7 @@ fi
 
 #### CHANGE TO APPROPRIATE NAME ####
 folder="Staphoria"
+bacteria="Staphylococcus_aureus"
 
 ### CREATE all necessary output folders ###
 mkdir corr &&
@@ -78,22 +79,22 @@ for X in 180N12 247N6F 235N3F 94A12 196N12 167N12 45N3 243A3 258NI 84N12 288N3 2
 		cd ~/Documents/GBS_reference_files/ &&
 		
 		### MLST ###
-		# Requires correct MLST input files for bacterial species >Streptococcus_agalactiae.fasta and >sagalactiae.txt
+		# Requires correct MLST input files for bacterial species >Staphylococcus_aureus.fasta and >>>>staph galactiae.txt
 		cp ../"$folder"/fastq/"$X"_R1.fastq.gz ./"$X"_1.fastq.gz &&
 		cp ../"$folder"/fastq/"$X"_R2.fastq.gz ./"$X"_2.fastq.gz &&
 			# srst2 command
-		srst2.py --threads 20 --output "$X" --input_pe "$X"_*.fastq.gz --mlst_db Streptococcus_agalactiae.fasta --mlst_definitions sagalactiae.txt --mlst_delimiter '_' &&
+		srst2.py --threads 20 --output "$X" --input_pe "$X"_*.fastq.gz --mlst_db Staphylococcus_aureus.fasta --mlst_definitions !!!!!Staphylococcus_aureus!!!!!!.txt --mlst_delimiter '_' &&
 			#cleanup
-		mv "$X"__mlst__Streptococcus_agalactiae__results.txt ../"$folder"/MLST/out/"$X"_mlst.txt &&
+		mv "$X"__mlst__Staphylococcus_aureus__results.txt ../"$folder"/MLST/out/"$X"_mlst.txt &&
 		rm *.pileup &&
 		rm *.bam &&
 		echo "	*** Done with MLST for $X"
 		
 		### SEROTYPE ###
-		srst2.py --input_pe "$X"_1.fastq.gz "$X"_2.fastq.gz --gene_db GBS_serotype.fa --gene_max_mismatch 10 --min_coverage 98 --min_depth 10 --max_divergence 1 --output "$X" --threads 20 &&
+		srst2.py --input_pe "$X"_1.fastq.gz "$X"_2.fastq.gz --gene_db SA!!!!!!_serotype.fa --gene_max_mismatch 10 --min_coverage 98 --min_depth 10 --max_divergence 1 --output "$X" --threads 20 &&
 		#mismatch changed from 1 to 10, depth from 15 to 10, divergence from 0 to 1#
 			#cleanup
-		mv "$X"__fullgenes__GBS_serotype__results.txt ../"$folder"/serotype/out/"$X"_serotype.txt &&
+		mv "$X"__fullgenes__SA_serotype__results.txt ../"$folder"/serotype/out/"$X"_serotype.txt &&
 		rm "$X"__*.bam &&
 		rm "$X"__*.pileup &&
 		rm "$X"__genes*.txt &&
