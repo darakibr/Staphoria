@@ -15,17 +15,17 @@ if [ -d "$HOME/gen-soft/samtools" ] ; then
 fi
 
 ### Name all necessary inputs #examples ###
-folder="Staphoria" #GBS_IV
+folder="~/Documents/Staphoria" #GBS_IV
+referencefolder="SA_reference_files"
 bacteria="Staphylococcus_aureus" #Streptococcus_agalactiae
 stdb="SA_serotype" #GBS_serotype.fa
 
 ### CREATE all necessary output folders ###
-cd ~/Documents/"$folder"/
+cd "$folder"
 mkdir -p {corr,seeker,denovo,readqc,SPAdeslog,MLST/out,serotype/out,AMR/amrtxt,AMR/amrjson,metaoutput} &&
 
 ### START OF ANALYSIS ###
 for X in LIST_OF_SAMPLES ; do
-		cd ~/Documents/"$folder"
 		cp ./fastq/"$X"_R1.fastq.gz . &&
 		cp ./fastq/"$X"_R2.fastq.gz . &&
 		
@@ -35,7 +35,7 @@ for X in LIST_OF_SAMPLES ; do
 		gzip "$X"_R1.fastq &&
 		
 		#strainseeker#
-		perl /home/user/gen-soft/strainseeker/seeker.pl -i "$X"_R1-25k.fastq -d /home/user/gen-soft/strainseeker/ss_db_w32_4324 -o "$X"_ss.txt &&
+		perl ~/gen-soft/strainseeker/seeker.pl -i "$X"_R1-25k.fastq -d ~/gen-soft/strainseeker/ss_db_w32_4324 -o "$X"_ss.txt &&
 		echo "	*** done with Strainseeker for $X"
 		### START SPADES de novo assembly; saves corrected reads for use in subsequent steps ###
 		spades.py -t 28 -1 "$X"_R1.fastq.gz -2 "$X"_R2.fastq.gz -o "$X"_spades-de-novo  &&
@@ -52,7 +52,7 @@ for X in LIST_OF_SAMPLES ; do
 		awk '/^>/{print ">""'"$X"'""_contigs-" ++i; next}{print}' < "$X"_contigs.fasta > "$X"_contigs2.fasta &&
 		
 		### Remove contigs <4, removesmalls.pl program path not set in profile yet ###
-		perl /home/user/gen-soft/removesmalls.pl 1000 "$X"_contigs2.fasta >"$X"_contigs-1K.fasta &&
+		perl ~/gen-soft/removesmalls.pl 1000 "$X"_contigs2.fasta >"$X"_contigs-1K.fasta &&
 		
 		#Raspberry for qc on corrected reads#
 		raspberry ./corr/"$X"* >"$X"_readqc.txt &&
@@ -70,12 +70,12 @@ for X in LIST_OF_SAMPLES ; do
 		rm "$X"_contigs.fasta &&
 		
 		echo "	*** Starting analysis on gene seq"
-		cd ~/Documents/GBS_reference_files/ &&
+		cd ~/Documents/"$referencefolder"/ &&
 		
 		### MLST ###
 		# Requires correct MLST input files for bacterial species >Streptococcus_agalactiae.fasta and >sagalactiae.txt
-		cp ../"$folder"/fastq/"$X"_R1.fastq.gz ./"$X"_1.fastq.gz &&
-		cp ../"$folder"/fastq/"$X"_R2.fastq.gz ./"$X"_2.fastq.gz &&
+		cp "$folder"/fastq/"$X"_R1.fastq.gz ./"$X"_1.fastq.gz &&
+		cp "$folder"/fastq/"$X"_R2.fastq.gz ./"$X"_2.fastq.gz &&
 			# srst2 command
 		srst2.py --threads 20 --output "$X" --input_pe "$X"_*.fastq.gz --mlst_db "$bacteria".fasta --mlst_definitions "$bacteria".txt --mlst_delimiter '_' &&
 			#cleanup
@@ -88,7 +88,7 @@ for X in LIST_OF_SAMPLES ; do
 		srst2.py --input_pe "$X"_1.fastq.gz "$X"_2.fastq.gz --gene_db "$stdb".fa --gene_max_mismatch 10 --min_coverage 98 --min_depth 10 --max_divergence 1 --output "$X" --threads 20 &&
 		#mismatch changed from 1 to 10, depth from 15 to 10, divergence from 0 to 1#
 			#cleanup
-		mv "$X"__fullgenes__"$stdb"__results.txt ../"$folder"/serotype/out/"$X"_serotype.txt &&
+		mv "$X"__fullgenes__"$stdb"__results.txt "$folder"/serotype/out/"$X"_serotype.txt &&
 		rm "$X"__*.bam &&
 		rm "$X"__*.pileup &&
 		rm "$X"__genes*.txt &&
@@ -97,17 +97,17 @@ for X in LIST_OF_SAMPLES ; do
 		echo "	*** Done with serotyping for $X"
 		
 		### AMR calling ###
-		cp ../"$folder"/denovo/"$X"_contigs-1K.fasta.gz . &&
+		cp "$folder"/denovo/"$X"_contigs-1K.fasta.gz . &&
 		gunzip "$X"_contigs-1K.fasta.gz &&
 		rgi main --input_sequence "$X"_contigs-1K.fasta --output_file "$X" --input_type contig --num_threads 20 --local --clean &&
 			#cleanup
 		rm "$X"_contigs-1K.fasta &&
-		mv "$X".txt ../"$folder"/AMR/amrtxt/ &&
-		mv "$X".json ../"$folder"/AMR/amrjson/ &&
+		mv "$X".txt "$folder"/AMR/amrtxt/ &&
+		mv "$X".json "$folder"/AMR/amrjson/ &&
 		echo "	*** done with AMR calling for $X"
 done
 
-cd ~/Documents/"$folder"/MLST/ &&
+cd "$folder"/MLST/ &&
 head -1 ./out/header_mlst.txt > ../metaoutput/all_mlst.txt && tail -n +2 -q ./out/*.txt >> ../metaoutput/all_mlst.txt &&
 cd ../serotype
 cat ./out/*.txt > ../metaoutput/all_serotype.txt
