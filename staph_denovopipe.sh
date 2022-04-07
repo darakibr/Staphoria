@@ -18,7 +18,6 @@ fi
 folder="~/Documents/Staphoria" #GBS_IV
 referencefolder="SA_reference_files"
 bacteria="Staphylococcus_aureus" #Streptococcus_agalactiae
-stdb="SA_serotype" #GBS_serotype.fa
 
 ### CREATE all necessary output folders ###
 cd "$folder"
@@ -73,7 +72,7 @@ for X in LIST_OF_SAMPLES ; do
 		cd ~/Documents/"$referencefolder"/ &&
 		
 		### MLST ###
-		# Requires correct MLST input files for bacterial species >Streptococcus_agalactiae.fasta and >sagalactiae.txt
+		# Requires correct MLST input files for bacterial species
 		cp "$folder"/fastq/"$X"_R1.fastq.gz ./"$X"_1.fastq.gz &&
 		cp "$folder"/fastq/"$X"_R2.fastq.gz ./"$X"_2.fastq.gz &&
 			# srst2 command
@@ -83,18 +82,6 @@ for X in LIST_OF_SAMPLES ; do
 		rm *.pileup &&
 		rm *.bam &&
 		echo "	*** Done with MLST for $X"
-		
-		### SEROTYPE ###
-		srst2.py --input_pe "$X"_1.fastq.gz "$X"_2.fastq.gz --gene_db "$stdb".fa --gene_max_mismatch 10 --min_coverage 98 --min_depth 10 --max_divergence 1 --output "$X" --threads 20 &&
-		#mismatch changed from 1 to 10, depth from 15 to 10, divergence from 0 to 1#
-			#cleanup
-		mv "$X"__fullgenes__"$stdb"__results.txt "$folder"/serotype/out/"$X"_serotype.txt &&
-		rm "$X"__*.bam &&
-		rm "$X"__*.pileup &&
-		rm "$X"__genes*.txt &&
-		rm "$X"_1.fastq.gz &&
-		rm "$X"_2.fastq.gz &&
-		echo "	*** Done with serotyping for $X"
 		
 		### AMR calling ###
 		cp "$folder"/denovo/"$X"_contigs-1K.fasta.gz . &&
